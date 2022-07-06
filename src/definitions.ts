@@ -26,7 +26,7 @@ export interface RequestBleDeviceOptions {
   /**
    * Filter devices by name
    */
-  name?: string;
+  names?: string[];
   /**
    * Filter devices by name prefix
    */

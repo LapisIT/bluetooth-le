@@ -749,25 +749,17 @@ class BluetoothLe : Plugin() {
         val filters: ArrayList<ScanFilter> = ArrayList()
 
         val services = (call.getArray("services", JSArray()) as JSArray).toList<String>()
-        val name = call.getString("name", null)
+        val names = (call.getArray("names", JSArray()) as JSArray).toList<String>()
         try {
-            for (service in services) {
+            for (name in names) {
                 val filter = ScanFilter.Builder()
-                filter.setServiceUuid(ParcelUuid.fromString(service))
-                if (name != null) {
-                    filter.setDeviceName(name)
-                }
+//                filter.setServiceUuid(ParcelUuid.fromString(service))
+                filter.setDeviceName(name)
                 filters.add(filter.build())
             }
         } catch (e: IllegalArgumentException) {
             call.reject("Invalid service UUID.")
             return null
-        }
-
-        if (name != null && filters.isEmpty()) {
-            val filter = ScanFilter.Builder()
-            filter.setDeviceName(name)
-            filters.add(filter.build())
         }
 
         return filters

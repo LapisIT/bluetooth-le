@@ -16,7 +16,7 @@ class DeviceManager: NSObject, CBCentralManagerDelegate {
     private var stopScanWorkItem: DispatchWorkItem?
     private var alertController: UIAlertController?
     private var discoveredDevices = [String: Device]()
-    private var deviceNameFilter: String?
+    private var deviceNameFilter: [String]?
     private var deviceNamePrefixFilter: String?
     private var shouldShowDeviceList = false
     private var allowDuplicates = false
@@ -77,7 +77,7 @@ class DeviceManager: NSObject, CBCentralManagerDelegate {
 
     func startScanning(
         _ serviceUUIDs: [CBUUID],
-        _ name: String?,
+        _ names: [String]?,
         _ namePrefix: String?,
         _ allowDuplicates: Bool,
         _ shouldShowDeviceList: Bool,
@@ -92,7 +92,7 @@ class DeviceManager: NSObject, CBCentralManagerDelegate {
             self.discoveredDevices = [String: Device]()
             self.shouldShowDeviceList = shouldShowDeviceList
             self.allowDuplicates = allowDuplicates
-            self.deviceNameFilter = name
+            self.deviceNameFilter = names ?? []
             self.deviceNamePrefixFilter = namePrefix
 
             if shouldShowDeviceList {
@@ -282,7 +282,7 @@ class DeviceManager: NSObject, CBCentralManagerDelegate {
     private func passesNameFilter(peripheralName: String?) -> Bool {
         guard let nameFilter = self.deviceNameFilter else { return true }
         guard let name = peripheralName else { return false }
-        return name == nameFilter
+        return nameFilter.contains(name)
     }
 
     private func passesNamePrefixFilter(peripheralName: String?) -> Bool {
