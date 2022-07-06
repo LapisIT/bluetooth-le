@@ -342,13 +342,13 @@ export class BluetoothLeWeb extends WebPlugin implements BluetoothLePlugin {
     for (const service of options?.services ?? []) {
       filters.push({
         services: [service],
-        name: options?.name,
+        name: options?.names?.[0],
         namePrefix: options?.namePrefix,
       });
     }
-    if ((options?.name || options?.namePrefix) && filters.length === 0) {
+    if ((options?.names || options?.namePrefix) && filters.length === 0) {
       filters.push({
-        name: options.name,
+        name: options.names?.[0],
         namePrefix: options.namePrefix,
       });
     }

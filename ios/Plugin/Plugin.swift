@@ -104,12 +104,12 @@ public class BluetoothLe: CAPPlugin {
         deviceManager.setDisplayStrings(self.displayStrings)
 
         let serviceUUIDs = self.getServiceUUIDs(call)
-        let name = call.getString("name")
+        let names = call.getArray("names", String.self) ?? []
         let namePrefix = call.getString("namePrefix")
 
         deviceManager.startScanning(
             serviceUUIDs,
-            name,
+            names,
             namePrefix,
             false,
             true,
@@ -136,13 +136,13 @@ public class BluetoothLe: CAPPlugin {
         guard let deviceManager = self.getDeviceManager(call) else { return }
 
         let serviceUUIDs = self.getServiceUUIDs(call)
-        let name = call.getString("name")
+        let names = call.getArray("names", String.self) ?? []
         let namePrefix = call.getString("namePrefix")
         let allowDuplicates = call.getBool("allowDuplicates", false)
 
         deviceManager.startScanning(
             serviceUUIDs,
-            name,
+            names,
             namePrefix,
             allowDuplicates,
             false,
