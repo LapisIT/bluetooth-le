@@ -175,9 +175,14 @@ public class BluetoothLe: CAPPlugin {
         let deviceUUIDs: [UUID] = deviceIds.compactMap({ deviceId in
             return UUID(uuidString: deviceId)
         })
-        let devices: [Device] = deviceManager.getDevices(deviceUUIDs)
-        let bleDevices: [BleDevice] = devices.map({device in
-            self.deviceMap[device.getId()] = device
+        let peripherals = deviceManager.getDevices(deviceUUIDs)
+        let bleDevices: [BleDevice] = peripherals.map({peripheral in
+            let deviceId = peripheral.identifier.uuidString
+            guard let device = self.deviceMap[deviceId] else {
+                let newDevice = Device(peripheral)
+                self.deviceMap[newDevice.getId()] = newDevice
+                return self.getBleDevice(newDevice)
+            }
             return self.getBleDevice(device)
         })
         call.resolve(["devices": bleDevices])
@@ -192,9 +197,14 @@ public class BluetoothLe: CAPPlugin {
         let serviceUUIDs: [CBUUID] = services.compactMap({ service in
             return CBUUID(string: service)
         })
-        let devices: [Device] = deviceManager.getConnectedDevices(serviceUUIDs)
-        let bleDevices: [BleDevice] = devices.map({device in
-            self.deviceMap[device.getId()] = device
+        let peripherals = deviceManager.getConnectedDevices(serviceUUIDs)
+        let bleDevices: [BleDevice] = peripherals.map({peripheral in
+            let deviceId = peripheral.identifier.uuidString
+            guard let device = self.deviceMap[deviceId] else {
+                let newDevice = Device(peripheral)
+                self.deviceMap[newDevice.getId()] = newDevice
+                return self.getBleDevice(newDevice)
+            }
             return self.getBleDevice(device)
         })
         call.resolve(["devices": bleDevices])
@@ -218,7 +228,7 @@ public class BluetoothLe: CAPPlugin {
         })
         self.deviceManager?.connect(device, timeout, {(success, message) -> Void in
             if success {
-                print("Connected to peripheral. Waiting for service discovery.")
+                log("Connected to peripheral. Waiting for service discovery.")
             } else {
                 call.reject(message)
             }
@@ -288,6 +298,31 @@ public class BluetoothLe: CAPPlugin {
             "notifyEncryptionRequired": characteristic.properties.contains(CBCharacteristicProperties.notifyEncryptionRequired),
             "indicateEncryptionRequired": characteristic.properties.contains(CBCharacteristicProperties.indicateEncryptionRequired)
         ]
+    }
+
+    @objc func discoverServices(_ call: CAPPluginCall) {
+        guard self.getDeviceManager(call) != nil else { return }
+        guard let device = self.getDevice(call) else { return }
+        let timeout = self.getTimeout(call)
+        device.discoverServices(timeout, {(success, value) -> Void in
+            if success {
+                call.resolve()
+            } else {
+                call.reject(value)
+            }
+        })
+    }
+
+    @objc func getMtu(_ call: CAPPluginCall) {
+        guard self.getDeviceManager(call) != nil else { return }
+        guard let device = self.getDevice(call) else { return }
+        call.resolve([
+            "value": device.getMtu()
+        ])
+    }
+
+    @objc func requestConnectionPriority(_ call: CAPPluginCall) {
+        call.unavailable("requestConnectionPriority is not available on iOS.")
     }
 
     @objc func readRssi(_ call: CAPPluginCall) {

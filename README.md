@@ -1,3 +1,4 @@
+===
 <p align="center"><br><img src="https://user-images.githubusercontent.com/236501/85893648-1c92e880-b7a8-11ea-926d-95355b8175c7.png" width="128" height="128" /></p>
 <h3 align="center">Bluetooth Low Energy</h3>
 <p align="center"><strong><code>@capacitor-community/bluetooth-le</code></strong></p>
@@ -6,14 +7,14 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/maintenance/yes/2022?style=flat-square" />
-  <a href="https://github.com/capacitor-community/bluetooth-le/actions?query=workflow%3A%22CI%22"><img src="https://img.shields.io/github/workflow/status/capacitor-community/bluetooth-le/CI?style=flat-square" /></a>
+  <img src="https://img.shields.io/maintenance/yes/2023?style=flat-square" />
+  <a href="https://github.com/capacitor-community/bluetooth-le/actions?query=workflow%3A%22CI%22"><img src="https://img.shields.io/github/actions/workflow/status/capacitor-community/bluetooth-le/main.yml?branch=main&style=flat-square" /></a>
   <a href="https://www.npmjs.com/package/@capacitor-community/bluetooth-le"><img src="https://img.shields.io/npm/l/@capacitor-community/bluetooth-le?style=flat-square" /></a>
 <br>
   <a href="https://www.npmjs.com/package/@capacitor-community/bluetooth-le"><img src="https://img.shields.io/npm/dw/@capacitor-community/bluetooth-le?style=flat-square" /></a>
   <a href="https://www.npmjs.com/package/@capacitor-community/bluetooth-le"><img src="https://img.shields.io/npm/v/@capacitor-community/bluetooth-le?style=flat-square" /></a>
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-<a href="#contributors-"><img src="https://img.shields.io/badge/all%20contributors-7-orange?style=flat-square" /></a>
+<a href="#contributors-"><img src="https://img.shields.io/badge/all%20contributors-9-orange?style=flat-square" /></a>
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 </p>
 
@@ -27,7 +28,8 @@
 
 | Plugin | Capacitor | Documentation                                                                     |
 | ------ | --------- | --------------------------------------------------------------------------------- |
-| 1.x    | 3.x       | [README](https://github.com/capacitor-community/bluetooth-le/blob/main/README.md) |
+| 2.x    | 4.x       | [README](https://github.com/capacitor-community/bluetooth-le/blob/main/README.md) |
+| 1.x    | 3.x       | [README](https://github.com/capacitor-community/bluetooth-le/blob/1.x/README.md)  |
 | 0.x    | 2.x       | [README](https://github.com/capacitor-community/bluetooth-le/blob/0.x/README.md)  |
 
 ## Introduction
@@ -68,6 +70,9 @@ Below is an index of all the methods available.
 - [`isBonded(...)`](#isbonded)
 - [`disconnect(...)`](#disconnect)
 - [`getServices(...)`](#getservices)
+- [`discoverServices(...)`](#discoverservices)
+- [`getMtu(...)`](#getmtu)
+- [`requestConnectionPriority(...)`](#requestconnectionpriority)
 - [`readRssi(...)`](#readrssi)
 - [`read(...)`](#read)
 - [`write(...)`](#write)
@@ -127,9 +132,9 @@ If your app targets Android 12 (API level 31) or higher and your app doesn't use
 
 The following steps are required to scan for Bluetooth devices without location permission on Android 12 devices:
 
-- In `android/variables.gradle`, increase `compileSdkVersion` and `targetSdkVersion` to 31 (this can have other consequences on your app, so make sure you know what you're doing).
+- In `android/variables.gradle`, make sure `compileSdkVersion` and `targetSdkVersion` are at least 31 (changing those values can have other consequences on your app, so make sure you know what you're doing).
 - Make sure you have JDK 11+ (it is recommended to use JDK that comes with Android Studio).
-- In `android/app/src/main/AndroidManifest.xml`, add `android:exported="true"` to your activity (setting [`android:exported`](https://developer.android.com/guide/topics/manifest/activity-element#exported) is required in apps targeting Android 12 and higher).
+- In `android/app/src/main/AndroidManifest.xml`, add `android:exported="true"` to your activity if not already added (setting [`android:exported`](https://developer.android.com/guide/topics/manifest/activity-element#exported) is required in apps targeting Android 12 and higher).
 - In `android/app/src/main/AndroidManifest.xml`, update the permissions:
   ```diff
       <!-- Permissions -->
@@ -335,6 +340,9 @@ _Note_: web support depends on the browser, see [implementation status](https://
 | [`isBonded(...)`](#isbonded)                                   |   ✅    | ❌  | ❌  |
 | [`disconnect(...)`](#disconnect)                               |   ✅    | ✅  | ✅  |
 | [`getServices(...)`](#getservices)                             |   ✅    | ✅  | ✅  |
+| [`discoverServices(...)`](#discoverservices)                   |   ✅    | ✅  | ❌  |
+| [`getMtu(...)`](#getmtu)                                       |   ✅    | ✅  | ❌  |
+| [`requestConnectionPriority(...)`](#requestconnectionpriority) |   ✅    | ❌  | ❌  |
 | [`readRssi(...)`](#readrssi)                                   |   ✅    | ✅  | ❌  |
 | [`read(...)`](#read)                                           |   ✅    | ✅  | ✅  |
 | [`write(...)`](#write)                                         |   ✅    | ✅  | ✅  |
@@ -550,9 +558,9 @@ Uses [retrievePeripherals](https://developer.apple.com/documentation/corebluetoo
 [getDevices](https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth/getDevices) on web.
 On Android, you can directly connect to the device with the deviceId.
 
-| Param           | Type                  | Description                                                             |
-| --------------- | --------------------- | ----------------------------------------------------------------------- |
-| **`deviceIds`** | <code>string[]</code> | List of device IDs, e.g. saved from a previous app run. No used on web. |
+| Param           | Type                  | Description                                             |
+| --------------- | --------------------- | ------------------------------------------------------- |
+| **`deviceIds`** | <code>string[]</code> | List of device IDs, e.g. saved from a previous app run. |
 
 **Returns:** <code>Promise&lt;BleDevice[]&gt;</code>
 
@@ -655,6 +663,56 @@ Get services, characteristics and descriptors of a device.
 
 ---
 
+### discoverServices(...)
+
+```typescript
+discoverServices(deviceId: string) => Promise<void>
+```
+
+Discover services, characteristics and descriptors of a device.
+You only need this method if your peripheral device changes its services and characteristics at runtime.
+If the discovery was successful, the remote services can be retrieved using the getServices function.
+Not available on **web**.
+
+| Param          | Type                | Description                                                                                                    |
+| -------------- | ------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **`deviceId`** | <code>string</code> | The ID of the device to use (obtained from [requestDevice](#requestDevice) or [requestLEScan](#requestLEScan)) |
+
+---
+
+### getMtu(...)
+
+```typescript
+getMtu(deviceId: string) => Promise<number>
+```
+
+Get the MTU of a connected device. Note that the maximum write value length is 3 bytes less than the MTU.
+Not available on **web**.
+
+| Param          | Type                | Description                                                                                                    |
+| -------------- | ------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **`deviceId`** | <code>string</code> | The ID of the device to use (obtained from [requestDevice](#requestDevice) or [requestLEScan](#requestLEScan)) |
+
+**Returns:** <code>Promise&lt;number&gt;</code>
+
+---
+
+### requestConnectionPriority(...)
+
+```typescript
+requestConnectionPriority(deviceId: string, connectionPriority: ConnectionPriority) => Promise<void>
+```
+
+Request a connection parameter update.
+Only available on **Android**. https://developer.android.com/reference/android/bluetooth/BluetoothGatt#requestConnectionPriority(int)
+
+| Param                    | Type                                                              | Description                                                                                                    |
+| ------------------------ | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **`deviceId`**           | <code>string</code>                                               | The ID of the device to use (obtained from [requestDevice](#requestDevice) or [requestLEScan](#requestLEScan)) |
+| **`connectionPriority`** | <code><a href="#connectionpriority">ConnectionPriority</a></code> | Request a specific connection priority. See [ConnectionPriority](#connectionpriority)                          |
+
+---
+
 ### readRssi(...)
 
 ```typescript
@@ -662,7 +720,7 @@ readRssi(deviceId: string) => Promise<number>
 ```
 
 Read the RSSI value of a connected device.
-Not available on web.
+Not available on **web**.
 
 | Param          | Type                | Description                                                                                                    |
 | -------------- | ------------------- | -------------------------------------------------------------------------------------------------------------- |
@@ -947,6 +1005,14 @@ buffer as needed.
 | **`SCAN_MODE_BALANCED`**    | <code>1</code> | Perform Bluetooth LE scan in balanced power mode. (default) Scan results are returned at a rate that provides a good trade-off between scan frequency and power consumption. https://developer.android.com/reference/android/bluetooth/le/ScanSettings#SCAN_MODE_BALANCED |
 | **`SCAN_MODE_LOW_LATENCY`** | <code>2</code> | Scan using highest duty cycle. It's recommended to only use this mode when the application is running in the foreground. https://developer.android.com/reference/android/bluetooth/le/ScanSettings#SCAN_MODE_LOW_LATENCY                                                  |
 
+#### ConnectionPriority
+
+| Members                             | Value          | Description                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ----------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **`CONNECTION_PRIORITY_BALANCED`**  | <code>0</code> | Use the connection parameters recommended by the Bluetooth SIG. This is the default value if no connection parameter update is requested. https://developer.android.com/reference/android/bluetooth/BluetoothGatt#CONNECTION_PRIORITY_BALANCED                                                                                                                                                                     |
+| **`CONNECTION_PRIORITY_HIGH`**      | <code>1</code> | Request a high priority, low latency connection. An application should only request high priority connection parameters to transfer large amounts of data over LE quickly. Once the transfer is complete, the application should request CONNECTION_PRIORITY_BALANCED connection parameters to reduce energy use. https://developer.android.com/reference/android/bluetooth/BluetoothGatt#CONNECTION_PRIORITY_HIGH |
+| **`CONNECTION_PRIORITY_LOW_POWER`** | <code>2</code> | Request low power, reduced data rate connection parameters. https://developer.android.com/reference/android/bluetooth/BluetoothGatt#CONNECTION_PRIORITY_LOW_POWER                                                                                                                                                                                                                                                  |
+
 </docgen-api>
 
 ### UUID format
@@ -984,15 +1050,21 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
 <table>
-  <tr>
-    <td align="center"><a href="https://github.com/pwespi"><img src="https://avatars2.githubusercontent.com/u/24232962?v=4?s=100" width="100px;" alt=""/><br /><sub><b>pwespi</b></sub></a><br /><a href="https://github.com/capacitor-community/bluetooth-le/commits?author=pwespi" title="Code">💻</a> <a href="https://github.com/capacitor-community/bluetooth-le/commits?author=pwespi" title="Documentation">📖</a></td>
-    <td align="center"><a href="https://twitter.com/dennisameling"><img src="https://avatars.githubusercontent.com/u/17739158?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Dennis Ameling</b></sub></a><br /><a href="https://github.com/capacitor-community/bluetooth-le/commits?author=dennisameling" title="Code">💻</a></td>
-    <td align="center"><a href="http://squio.nl"><img src="https://avatars.githubusercontent.com/u/169410?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Johannes la Poutre</b></sub></a><br /><a href="https://github.com/capacitor-community/bluetooth-le/commits?author=squio" title="Documentation">📖</a> <a href="https://github.com/capacitor-community/bluetooth-le/commits?author=squio" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/sultanmyrza"><img src="https://avatars.githubusercontent.com/u/12681781?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Kasymbekov Sultanmyrza</b></sub></a><br /><a href="https://github.com/capacitor-community/bluetooth-le/commits?author=sultanmyrza" title="Code">💻</a></td>
-    <td align="center"><a href="https://sourcya.com"><img src="https://avatars.githubusercontent.com/u/9040320?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Mutasim Issa</b></sub></a><br /><a href="https://github.com/capacitor-community/bluetooth-le/commits?author=mutasimissa" title="Documentation">📖</a></td>
-    <td align="center"><a href="http://www.gnucoop.com"><img src="https://avatars.githubusercontent.com/u/1615301?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Marco Marche</b></sub></a><br /><a href="https://github.com/capacitor-community/bluetooth-le/commits?author=trik" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/JFKakaJFK"><img src="https://avatars.githubusercontent.com/u/13108477?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Johannes Koch</b></sub></a><br /><a href="https://github.com/capacitor-community/bluetooth-le/commits?author=JFKakaJFK" title="Code">💻</a></td>
-  </tr>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/pwespi"><img src="https://avatars2.githubusercontent.com/u/24232962?v=4?s=100" width="100px;" alt="pwespi"/><br /><sub><b>pwespi</b></sub></a><br /><a href="https://github.com/capacitor-community/bluetooth-le/commits?author=pwespi" title="Code">💻</a> <a href="https://github.com/capacitor-community/bluetooth-le/commits?author=pwespi" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://twitter.com/dennisameling"><img src="https://avatars.githubusercontent.com/u/17739158?v=4?s=100" width="100px;" alt="Dennis Ameling"/><br /><sub><b>Dennis Ameling</b></sub></a><br /><a href="https://github.com/capacitor-community/bluetooth-le/commits?author=dennisameling" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://squio.nl"><img src="https://avatars.githubusercontent.com/u/169410?v=4?s=100" width="100px;" alt="Johannes la Poutre"/><br /><sub><b>Johannes la Poutre</b></sub></a><br /><a href="https://github.com/capacitor-community/bluetooth-le/commits?author=squio" title="Documentation">📖</a> <a href="https://github.com/capacitor-community/bluetooth-le/commits?author=squio" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/sultanmyrza"><img src="https://avatars.githubusercontent.com/u/12681781?v=4?s=100" width="100px;" alt="Kasymbekov Sultanmyrza"/><br /><sub><b>Kasymbekov Sultanmyrza</b></sub></a><br /><a href="https://github.com/capacitor-community/bluetooth-le/commits?author=sultanmyrza" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://sourcya.com"><img src="https://avatars.githubusercontent.com/u/9040320?v=4?s=100" width="100px;" alt="Mutasim Issa"/><br /><sub><b>Mutasim Issa</b></sub></a><br /><a href="https://github.com/capacitor-community/bluetooth-le/commits?author=mutasimissa" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://www.gnucoop.com"><img src="https://avatars.githubusercontent.com/u/1615301?v=4?s=100" width="100px;" alt="Marco Marche"/><br /><sub><b>Marco Marche</b></sub></a><br /><a href="https://github.com/capacitor-community/bluetooth-le/commits?author=trik" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/JFKakaJFK"><img src="https://avatars.githubusercontent.com/u/13108477?v=4?s=100" width="100px;" alt="Johannes Koch"/><br /><sub><b>Johannes Koch</b></sub></a><br /><a href="https://github.com/capacitor-community/bluetooth-le/commits?author=JFKakaJFK" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/jrobeson"><img src="https://avatars.githubusercontent.com/u/56908?v=4?s=100" width="100px;" alt="Johnny Robeson"/><br /><sub><b>Johnny Robeson</b></sub></a><br /><a href="https://github.com/capacitor-community/bluetooth-le/commits?author=jrobeson" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/aadito123"><img src="https://avatars.githubusercontent.com/u/63646058?v=4?s=100" width="100px;" alt="Aadit Olkar"/><br /><sub><b>Aadit Olkar</b></sub></a><br /><a href="https://github.com/capacitor-community/bluetooth-le/commits?author=aadito123" title="Code">💻</a></td>
+    </tr>
+  </tbody>
 </table>
 
 <!-- markdownlint-restore -->

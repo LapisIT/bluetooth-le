@@ -6,6 +6,7 @@ import { dataViewToHexString, hexStringToDataView } from './conversion';
 import type {
   BleDevice,
   BleService,
+  ConnectionPriority,
   Data,
   InitializeOptions,
   ReadResult,
@@ -16,7 +17,7 @@ import type {
 } from './definitions';
 import { BluetoothLe } from './plugin';
 import { getQueue } from './queue';
-import { validateUUID } from './validators';
+import { parseUUID } from './validators';
 
 export interface BleClientInterface {
   /**
@@ -115,7 +116,7 @@ export interface BleClientInterface {
    * Uses [retrievePeripherals](https://developer.apple.com/documentation/corebluetooth/cbcentralmanager/1519127-retrieveperipherals) on iOS and
    * [getDevices](https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth/getDevices) on web.
    * On Android, you can directly connect to the device with the deviceId.
-   * @param deviceIds List of device IDs, e.g. saved from a previous app run. No used on web.
+   * @param deviceIds List of device IDs, e.g. saved from a previous app run.
    */
   getDevices(deviceIds: string[]): Promise<BleDevice[]>;
 
@@ -163,8 +164,32 @@ export interface BleClientInterface {
   getServices(deviceId: string): Promise<BleService[]>;
 
   /**
+   * Discover services, characteristics and descriptors of a device.
+   * You only need this method if your peripheral device changes its services and characteristics at runtime.
+   * If the discovery was successful, the remote services can be retrieved using the getServices function.
+   * Not available on **web**.
+   * @param deviceId  The ID of the device to use (obtained from [requestDevice](#requestDevice) or [requestLEScan](#requestLEScan))
+   */
+  discoverServices(deviceId: string): Promise<void>;
+
+  /**
+   * Get the MTU of a connected device. Note that the maximum write value length is 3 bytes less than the MTU.
+   * Not available on **web**.
+   * @param deviceId The ID of the device to use (obtained from [requestDevice](#requestDevice) or [requestLEScan](#requestLEScan))
+   */
+  getMtu(deviceId: string): Promise<number>;
+
+  /**
+   * Request a connection parameter update.
+   * Only available on **Android**. https://developer.android.com/reference/android/bluetooth/BluetoothGatt#requestConnectionPriority(int)
+   * @param deviceId The ID of the device to use (obtained from [requestDevice](#requestDevice) or [requestLEScan](#requestLEScan))
+   * @param connectionPriority Request a specific connection priority. See [ConnectionPriority](#connectionpriority)
+   */
+  requestConnectionPriority(deviceId: string, connectionPriority: ConnectionPriority): Promise<void>;
+
+  /**
    * Read the RSSI value of a connected device.
-   * Not available on web.
+   * Not available on **web**.
    * @param deviceId The ID of the device to use (obtained from [requestDevice](#requestDevice) or [requestLEScan](#requestLEScan))
    */
   readRssi(deviceId: string): Promise<number>;
@@ -372,6 +397,7 @@ class BleClientClass implements BleClientInterface {
   }
 
   async requestDevice(options?: RequestBleDeviceOptions): Promise<BleDevice> {
+    options = options ? this.validateRequestBleDeviceOptions(options) : undefined;
     const result = await this.queue(async () => {
       const device = await BluetoothLe.requestDevice(options);
       return device;
@@ -380,6 +406,7 @@ class BleClientClass implements BleClientInterface {
   }
 
   async requestLEScan(options: RequestBleDeviceOptions, callback: (result: ScanResult) => void): Promise<void> {
+    options = this.validateRequestBleDeviceOptions(options);
     await this.queue(async () => {
       await this.scanListener?.remove();
       this.scanListener = await BluetoothLe.addListener('onScanResult', (resultInternal: ScanResultInternal) => {
@@ -413,6 +440,10 @@ class BleClientClass implements BleClientInterface {
   }
 
   async getConnectedDevices(services: string[]): Promise<BleDevice[]> {
+    if (!Array.isArray(services)) {
+      throw new Error('services must be an array');
+    }
+    services = services.map(parseUUID);
     return this.queue(async () => {
       const result = await BluetoothLe.getConnectedDevices({ services });
       return result.devices;
@@ -461,6 +492,26 @@ class BleClientClass implements BleClientInterface {
     return services;
   }
 
+  async discoverServices(deviceId: string): Promise<void> {
+    await this.queue(async () => {
+      await BluetoothLe.discoverServices({ deviceId });
+    });
+  }
+
+  async getMtu(deviceId: string): Promise<number> {
+    const value = await this.queue(async () => {
+      const result = await BluetoothLe.getMtu({ deviceId });
+      return result.value;
+    });
+    return value;
+  }
+
+  async requestConnectionPriority(deviceId: string, connectionPriority: ConnectionPriority): Promise<void> {
+    await this.queue(async () => {
+      await BluetoothLe.requestConnectionPriority({ deviceId, connectionPriority });
+    });
+  }
+
   async readRssi(deviceId: string): Promise<number> {
     const value = await this.queue(async () => {
       const result = await BluetoothLe.readRssi({ deviceId });
@@ -470,8 +521,8 @@ class BleClientClass implements BleClientInterface {
   }
 
   async read(deviceId: string, service: string, characteristic: string, options?: TimeoutOptions): Promise<DataView> {
-    service = validateUUID(service);
-    characteristic = validateUUID(characteristic);
+    service = parseUUID(service);
+    characteristic = parseUUID(characteristic);
     const value = await this.queue(async () => {
       const result = await BluetoothLe.read({
         deviceId,
@@ -491,8 +542,8 @@ class BleClientClass implements BleClientInterface {
     value: DataView,
     options?: TimeoutOptions
   ): Promise<void> {
-    service = validateUUID(service);
-    characteristic = validateUUID(characteristic);
+    service = parseUUID(service);
+    characteristic = parseUUID(characteristic);
     return this.queue(async () => {
       if (!value?.buffer) {
         throw new Error('Invalid data.');
@@ -519,8 +570,8 @@ class BleClientClass implements BleClientInterface {
     value: DataView,
     options?: TimeoutOptions
   ): Promise<void> {
-    service = validateUUID(service);
-    characteristic = validateUUID(characteristic);
+    service = parseUUID(service);
+    characteristic = parseUUID(characteristic);
     await this.queue(async () => {
       if (!value?.buffer) {
         throw new Error('Invalid data.');
@@ -547,9 +598,9 @@ class BleClientClass implements BleClientInterface {
     descriptor: string,
     options?: TimeoutOptions
   ): Promise<DataView> {
-    service = validateUUID(service);
-    characteristic = validateUUID(characteristic);
-    descriptor = validateUUID(descriptor);
+    service = parseUUID(service);
+    characteristic = parseUUID(characteristic);
+    descriptor = parseUUID(descriptor);
     const value = await this.queue(async () => {
       const result = await BluetoothLe.readDescriptor({
         deviceId,
@@ -571,9 +622,9 @@ class BleClientClass implements BleClientInterface {
     value: DataView,
     options?: TimeoutOptions
   ): Promise<void> {
-    service = validateUUID(service);
-    characteristic = validateUUID(characteristic);
-    descriptor = validateUUID(descriptor);
+    service = parseUUID(service);
+    characteristic = parseUUID(characteristic);
+    descriptor = parseUUID(descriptor);
     return this.queue(async () => {
       if (!value?.buffer) {
         throw new Error('Invalid data.');
@@ -600,8 +651,8 @@ class BleClientClass implements BleClientInterface {
     characteristic: string,
     callback: (value: DataView) => void
   ): Promise<void> {
-    service = validateUUID(service);
-    characteristic = validateUUID(characteristic);
+    service = parseUUID(service);
+    characteristic = parseUUID(characteristic);
     await this.queue(async () => {
       const key = `notification|${deviceId}|${service}|${characteristic}`;
       await this.eventListeners.get(key)?.remove();
@@ -618,8 +669,8 @@ class BleClientClass implements BleClientInterface {
   }
 
   async stopNotifications(deviceId: string, service: string, characteristic: string): Promise<void> {
-    service = validateUUID(service);
-    characteristic = validateUUID(characteristic);
+    service = parseUUID(service);
+    characteristic = parseUUID(characteristic);
     await this.queue(async () => {
       const key = `notification|${deviceId}|${service}|${characteristic}`;
       await this.eventListeners.get(key)?.remove();
@@ -630,6 +681,16 @@ class BleClientClass implements BleClientInterface {
         characteristic,
       });
     });
+  }
+
+  private validateRequestBleDeviceOptions(options: RequestBleDeviceOptions): RequestBleDeviceOptions {
+    if (options.services) {
+      options.services = options.services.map(parseUUID);
+    }
+    if (options.optionalServices) {
+      options.optionalServices = options.optionalServices.map(parseUUID);
+    }
+    return options;
   }
 
   private convertValue(value?: Data): DataView {

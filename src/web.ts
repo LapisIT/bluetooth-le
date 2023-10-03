@@ -23,6 +23,8 @@ import type {
   ScanResultInternal,
   WriteOptions,
   WriteDescriptorOptions,
+  GetMtuResult,
+  RequestConnectionPriorityOptions,
 } from './definitions';
 import { runWithTimeout } from './timeout';
 
@@ -142,13 +144,15 @@ export class BluetoothLeWeb extends WebPlugin implements BluetoothLePlugin {
     this.scan = null;
   }
 
-  async getDevices(_options: GetDevicesOptions): Promise<GetDevicesResult> {
+  async getDevices(options: GetDevicesOptions): Promise<GetDevicesResult> {
     const devices = await navigator.bluetooth.getDevices();
-    const bleDevices = devices.map((device) => {
-      this.deviceMap.set(device.id, device);
-      const bleDevice = this.getBleDevice(device);
-      return bleDevice;
-    });
+    const bleDevices = devices
+      .filter((device) => options.deviceIds.includes(device.id))
+      .map((device) => {
+        this.deviceMap.set(device.id, device);
+        const bleDevice = this.getBleDevice(device);
+        return bleDevice;
+      });
     return { devices: bleDevices };
   }
 
@@ -266,6 +270,18 @@ export class BluetoothLeWeb extends WebPlugin implements BluetoothLePlugin {
     return characteristic?.getDescriptor(options?.descriptor);
   }
 
+  async discoverServices(_options: DeviceIdOptions): Promise<void> {
+    throw this.unavailable('discoverServices is not available on web.');
+  }
+
+  async getMtu(_options: DeviceIdOptions): Promise<GetMtuResult> {
+    throw this.unavailable('getMtu is not available on web.');
+  }
+
+  async requestConnectionPriority(_options: RequestConnectionPriorityOptions): Promise<void> {
+    throw this.unavailable('requestConnectionPriority is not available on web.');
+  }
+
   async readRssi(_options: DeviceIdOptions): Promise<ReadRssiResult> {
     throw this.unavailable('readRssi is not available on web.');
   }
@@ -368,7 +384,6 @@ export class BluetoothLeWeb extends WebPlugin implements BluetoothLePlugin {
       deviceId: device.id,
       // use undefined instead of null if name is not available
       name: device.name ?? undefined,
-      uuids: device.uuids,
     };
     return bleDevice;
   }
