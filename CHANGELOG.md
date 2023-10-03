@@ -2,6 +2,54 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.0.2](https://github.com/capacitor-community/bluetooth-le/compare/v3.0.1...v3.0.2) (2023-10-03)
+
+
+### Bug Fixes
+
+* **android:** added timeout on Device#createBond ([#573](https://github.com/capacitor-community/bluetooth-le/issues/573)) ([48f664f](https://github.com/capacitor-community/bluetooth-le/commit/48f664fc42e0cbf666abc5b3fb27a0e6fea8fa72))
+* **android:** use new methods from API level 33 ([9798e0f](https://github.com/capacitor-community/bluetooth-le/commit/9798e0f68b5c3c2416ebff36545c6f1d0665b31c))
+* **android:** use new writeCharacteristic method for API Level >= 33 ([#562](https://github.com/capacitor-community/bluetooth-le/issues/562)) ([cb74440](https://github.com/capacitor-community/bluetooth-le/commit/cb74440fd0d9963f9a388f7c876224e9bf520595))
+
+### [3.0.1](https://github.com/capacitor-community/bluetooth-le/compare/v3.0.0...v3.0.1) (2023-08-14)
+
+
+### Bug Fixes
+
+* **android:** fix concurrency issue in timeoutmap([#419](https://github.com/capacitor-community/bluetooth-le/issues/419)) ([#560](https://github.com/capacitor-community/bluetooth-le/issues/560)) ([31fa734](https://github.com/capacitor-community/bluetooth-le/commit/31fa734a1813812ea4ffff12e7f0054aa7faf589))
+
+## [3.0.0](https://github.com/capacitor-community/bluetooth-le/compare/v3.0.0-1...v3.0.0) (2023-05-07)
+
+
+### Features
+
+* update plugin to Capacitor 5 final ([210f9aa](https://github.com/capacitor-community/bluetooth-le/commit/210f9aab7450dfadbf660f67f410bad945f1a314))
+
+
+### Bug Fixes
+
+* **android:** bump sourceCompatibility and targetCompatibility from java 11 to 17 ([#533](https://github.com/capacitor-community/bluetooth-le/issues/533)) ([228c231](https://github.com/capacitor-community/bluetooth-le/commit/228c2318526c004c5d5cf83190aff49aa156b2b9))
+
+## [3.0.0-1](https://github.com/capacitor-community/bluetooth-le/compare/v3.0.0-0...v3.0.0-1) (2023-04-15)
+
+## [3.0.0-0](https://github.com/capacitor-community/bluetooth-le/compare/v2.2.3...v3.0.0-0) (2023-04-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* remove deprecated getEnabled, use isEnabled instead
+* update plugin to Capacitor 5
+
+### Features
+
+* update plugin to Capacitor 5 ([16822ac](https://github.com/capacitor-community/bluetooth-le/commit/16822ac305416289a3423d2fe112bbcb1454339f))
+
+
+### Bug Fixes
+
+* remove deprecated getEnabled, use isEnabled instead ([8773995](https://github.com/capacitor-community/bluetooth-le/commit/8773995629ea94c9ebe45391b3bac23feab43b4d))
+* validate deviceIds argument of getDevices ([8cedd65](https://github.com/capacitor-community/bluetooth-le/commit/8cedd655b243e78e522f457182aaf6335a963062))
+
 ### [2.2.3](https://github.com/capacitor-community/bluetooth-le/compare/v2.2.2...v2.2.3) (2023-04-15)
 
 

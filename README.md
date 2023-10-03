@@ -14,7 +14,7 @@
   <a href="https://www.npmjs.com/package/@capacitor-community/bluetooth-le"><img src="https://img.shields.io/npm/dw/@capacitor-community/bluetooth-le?style=flat-square" /></a>
   <a href="https://www.npmjs.com/package/@capacitor-community/bluetooth-le"><img src="https://img.shields.io/npm/v/@capacitor-community/bluetooth-le?style=flat-square" /></a>
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-<a href="#contributors-"><img src="https://img.shields.io/badge/all%20contributors-9-orange?style=flat-square" /></a>
+<a href="#contributors-"><img src="https://img.shields.io/badge/all%20contributors-14-orange?style=flat-square" /></a>
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 </p>
 
@@ -28,7 +28,8 @@
 
 | Plugin | Capacitor | Documentation                                                                     |
 | ------ | --------- | --------------------------------------------------------------------------------- |
-| 2.x    | 4.x       | [README](https://github.com/capacitor-community/bluetooth-le/blob/main/README.md) |
+| 3.x    | 5.x       | [README](https://github.com/capacitor-community/bluetooth-le/blob/main/README.md) |
+| 2.x    | 4.x       | [README](https://github.com/capacitor-community/bluetooth-le/blob/2.x/README.md)  |
 | 1.x    | 3.x       | [README](https://github.com/capacitor-community/bluetooth-le/blob/1.x/README.md)  |
 | 0.x    | 2.x       | [README](https://github.com/capacitor-community/bluetooth-le/blob/0.x/README.md)  |
 
@@ -122,6 +123,8 @@ If the app needs to use Bluetooth while it is in the background, you also have t
 
 ```
 
+**Note**: Bluetooth is **not** available in the iOS simulator. The `initialize` call will be rejected with an error "BLE unsupported". You have to test your app on a real device.
+
 ### Android
 
 On Android, no further steps are required to use the plugin (if you are using Capacitor 2, see [here](https://github.com/capacitor-community/bluetooth-le/blob/0.x/README.md#android)).
@@ -205,6 +208,8 @@ import { BleClient } from '@capacitor-community/bluetooth-le';
 import { BluetoothLe } from '@capacitor-community/bluetooth-le';
 ```
 
+### Heart rate monitor
+
 Here is an example of how to use the plugin. It shows how to read the heart rate from a BLE heart rate monitor such as the Polar H10.
 
 ```typescript
@@ -277,7 +282,9 @@ function parseHeartRate(value: DataView): number {
 }
 ```
 
-An example of using the scanning API:
+### Scanning API
+
+Here is an example of using the scanning API.
 
 ```typescript
 import { BleClient, numberToUUID } from '@capacitor-community/bluetooth-le';
@@ -401,6 +408,7 @@ enable() => Promise<void>
 
 Enable Bluetooth.
 Only available on **Android**.
+_deprecated_ See https://developer.android.com/reference/android/bluetooth/BluetoothAdapter#enable()
 
 ---
 
@@ -412,6 +420,7 @@ disable() => Promise<void>
 
 Disable Bluetooth.
 Only available on **Android**.
+_deprecated_ See https://developer.android.com/reference/android/bluetooth/BluetoothAdapter#disable()
 
 ---
 
@@ -528,7 +537,7 @@ requestLEScan(options: RequestBleDeviceOptions, callback: (result: ScanResult) =
 
 Start scanning for BLE devices to interact with according to the filters in the options. The callback will be invoked on each device that is found.
 Scanning will continue until `stopLEScan` is called. For an example, see [usage](#usage).
-**NOTE**: Use with care on **web** platform, the required API is still behind a flag in most browsers.
+**Note**: Use with care on **web** platform, the required API is still behind a flag in most browsers.
 
 | Param          | Type                                                                        |
 | -------------- | --------------------------------------------------------------------------- |
@@ -604,15 +613,16 @@ Connect to a peripheral BLE device. For an example, see [usage](#usage).
 ### createBond(...)
 
 ```typescript
-createBond(deviceId: string) => Promise<void>
+createBond(deviceId: string, options?: TimeoutOptions | undefined) => Promise<void>
 ```
 
 Create a bond with a peripheral BLE device.
 Only available on **Android**. On iOS bonding is handled by the OS.
 
-| Param          | Type                | Description                                                                                                    |
-| -------------- | ------------------- | -------------------------------------------------------------------------------------------------------------- |
-| **`deviceId`** | <code>string</code> | The ID of the device to use (obtained from [requestDevice](#requestDevice) or [requestLEScan](#requestLEScan)) |
+| Param          | Type                                                      | Description                                                                                                    |
+| -------------- | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **`deviceId`** | <code>string</code>                                       | The ID of the device to use (obtained from [requestDevice](#requestDevice) or [requestLEScan](#requestLEScan)) |
+| **`options`**  | <code><a href="#timeoutoptions">TimeoutOptions</a></code> | Options for plugin call                                                                                        |
 
 ---
 
@@ -1042,6 +1052,23 @@ await BleClient.disconnect(device.deviceId);
 await BleClient.connect(device.deviceId);
 ```
 
+#### No devices found on Android
+
+On Android, the `initialize` call requests the location permission. However, if location services are disable on the OS level, the app will not find any devices. You can check if the location is enabled and open the settings when not.
+
+```typescript
+async function initialize() {
+  // Check if location is enabled
+  if (this.platform.is('android')) {
+    const isLocationEnabled = await BleClient.isLocationEnabled();
+    if (!isLocationEnabled) {
+      await BleClient.openLocationSettings();
+    }
+  }
+  await BleClient.initialize();
+}
+```
+
 ## Contributors ✨
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
@@ -1063,6 +1090,11 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/jrobeson"><img src="https://avatars.githubusercontent.com/u/56908?v=4?s=100" width="100px;" alt="Johnny Robeson"/><br /><sub><b>Johnny Robeson</b></sub></a><br /><a href="https://github.com/capacitor-community/bluetooth-le/commits?author=jrobeson" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/aadito123"><img src="https://avatars.githubusercontent.com/u/63646058?v=4?s=100" width="100px;" alt="Aadit Olkar"/><br /><sub><b>Aadit Olkar</b></sub></a><br /><a href="https://github.com/capacitor-community/bluetooth-le/commits?author=aadito123" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/y3nd"><img src="https://avatars.githubusercontent.com/u/18102153?v=4?s=100" width="100px;" alt="Yoann N."/><br /><sub><b>Yoann N.</b></sub></a><br /><a href="https://github.com/capacitor-community/bluetooth-le/commits?author=y3nd" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Andy3189"><img src="https://avatars.githubusercontent.com/u/2084016?v=4?s=100" width="100px;" alt="Andy3189"/><br /><sub><b>Andy3189</b></sub></a><br /><a href="https://github.com/capacitor-community/bluetooth-le/commits?author=Andy3189" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/RFM69CW"><img src="https://avatars.githubusercontent.com/u/20404734?v=4?s=100" width="100px;" alt="Sammy"/><br /><sub><b>Sammy</b></sub></a><br /><a href="https://github.com/capacitor-community/bluetooth-le/commits?author=RFM69CW" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/td-tomasz-joniec"><img src="https://avatars.githubusercontent.com/u/109506928?v=4?s=100" width="100px;" alt="td-tomasz-joniec"/><br /><sub><b>td-tomasz-joniec</b></sub></a><br /><a href="https://github.com/capacitor-community/bluetooth-le/commits?author=td-tomasz-joniec" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://fanxj.com"><img src="https://avatars.githubusercontent.com/u/10436013?v=4?s=100" width="100px;" alt="Michele Ferrari"/><br /><sub><b>Michele Ferrari</b></sub></a><br /><a href="https://github.com/capacitor-community/bluetooth-le/commits?author=micheleypf" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>

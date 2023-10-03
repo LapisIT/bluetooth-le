@@ -36,12 +36,16 @@ export interface BleClientInterface {
   /**
    * Enable Bluetooth.
    * Only available on **Android**.
+   * *deprecated* See https://developer.android.com/reference/android/bluetooth/BluetoothAdapter#enable()
+   * @deprecated See https://developer.android.com/reference/android/bluetooth/BluetoothAdapter#enable()
    */
   enable(): Promise<void>;
 
   /**
    * Disable Bluetooth.
    * Only available on **Android**.
+   * *deprecated* See https://developer.android.com/reference/android/bluetooth/BluetoothAdapter#disable()
+   * @deprecated See https://developer.android.com/reference/android/bluetooth/BluetoothAdapter#disable()
    */
   disable(): Promise<void>;
 
@@ -100,7 +104,7 @@ export interface BleClientInterface {
   /**
    * Start scanning for BLE devices to interact with according to the filters in the options. The callback will be invoked on each device that is found.
    * Scanning will continue until `stopLEScan` is called. For an example, see [usage](#usage).
-   * **NOTE**: Use with care on **web** platform, the required API is still behind a flag in most browsers.
+   * **Note**: Use with care on **web** platform, the required API is still behind a flag in most browsers.
    * @param options
    * @param callback
    */
@@ -141,8 +145,9 @@ export interface BleClientInterface {
    * Create a bond with a peripheral BLE device.
    * Only available on **Android**. On iOS bonding is handled by the OS.
    * @param deviceId  The ID of the device to use (obtained from [requestDevice](#requestDevice) or [requestLEScan](#requestLEScan))
+   * @param options Options for plugin call
    */
-  createBond(deviceId: string): Promise<void>;
+  createBond(deviceId: string, options?: TimeoutOptions): Promise<void>;
 
   /**
    * Report whether a peripheral BLE device is bonded.
@@ -314,15 +319,6 @@ class BleClientClass implements BleClientInterface {
     });
   }
 
-  /**
-   * Reports whether BLE is enabled on this device.
-   * Always returns `true` on **web**.
-   * @deprecated Use `isEnabled` instead.
-   */
-  async getEnabled(): Promise<boolean> {
-    return this.isEnabled();
-  }
-
   async isEnabled(): Promise<boolean> {
     const enabled = await this.queue(async () => {
       const result = await BluetoothLe.isEnabled();
@@ -433,6 +429,9 @@ class BleClientClass implements BleClientInterface {
   }
 
   async getDevices(deviceIds: string[]): Promise<BleDevice[]> {
+    if (!Array.isArray(deviceIds)) {
+      throw new Error('deviceIds must be an array');
+    }
     return this.queue(async () => {
       const result = await BluetoothLe.getDevices({ deviceIds });
       return result.devices;
@@ -464,9 +463,9 @@ class BleClientClass implements BleClientInterface {
     });
   }
 
-  async createBond(deviceId: string): Promise<void> {
+  async createBond(deviceId: string, options?: TimeoutOptions): Promise<void> {
     await this.queue(async () => {
-      await BluetoothLe.createBond({ deviceId });
+      await BluetoothLe.createBond({ deviceId, ...options });
     });
   }
 
